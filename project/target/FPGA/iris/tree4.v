@@ -20,17 +20,12 @@ module tree4(
 			voted_class <= class0;
 		end 
 		else begin
-			if (ft0 <= 32'b00000000000000000000000000000101) begin
-				if (ft2 <= 32'b00000000000000000000000000000100) begin
-					voted_class <= class1;
-				end 
-				else begin
-					voted_class <= class2;
-				end
+			if (ft2 <= 32'b00000000000000000000000000000100) begin
+				voted_class <= class1;
 			end 
 			else begin
-				if (ft3 <= 32'b00000000000000000000000000000001) begin
-					if (ft2 <= 32'b00000000000000000000000000000100) begin
+				if (ft2 <= 32'b00000000000000000000000000000101) begin
+					if (ft3 <= 32'b00000000000000000000000000000001) begin
 						voted_class <= class1;
 					end 
 					else begin
@@ -38,22 +33,12 @@ module tree4(
 					end
 				end 
 				else begin
-					if (ft2 <= 32'b00000000000000000000000000000101) begin
-						if (ft3 <= 32'b00000000000000000000000000000001) begin
+					if (ft0 <= 32'b00000000000000000000000000000110) begin
+						if (ft1 <= 32'b00000000000000000000000000000010) begin
 							voted_class <= class1;
 						end 
 						else begin
-							if (ft0 <= 32'b00000000000000000000000000000101) begin
-								if (ft1 <= 32'b00000000000000000000000000000011) begin
-									voted_class <= class2;
-								end 
-								else begin
-									voted_class <= class1;
-								end
-							end 
-							else begin
-								voted_class <= class2;
-							end
+							voted_class <= class2;
 						end
 					end 
 					else begin

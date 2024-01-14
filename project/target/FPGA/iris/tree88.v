@@ -20,8 +20,8 @@ module tree88(
 			voted_class <= class0;
 		end 
 		else begin
-			if (ft0 <= 32'b00000000000000000000000000000101) begin
-				if (ft2 <= 32'b00000000000000000000000000000100) begin
+			if (ft2 <= 32'b00000000000000000000000000000100) begin
+				if (ft3 <= 32'b00000000000000000000000000000001) begin
 					voted_class <= class1;
 				end 
 				else begin
@@ -29,27 +29,12 @@ module tree88(
 				end
 			end 
 			else begin
-				if (ft0 <= 32'b00000000000000000000000000000110) begin
-					if (ft3 <= 32'b00000000000000000000000000000001) begin
-						if (ft0 <= 32'b00000000000000000000000000000110) begin
-							if (ft2 <= 32'b00000000000000000000000000000100) begin
-								voted_class <= class1;
-							end 
-							else begin
-								if (ft0 <= 32'b00000000000000000000000000000110) begin
-									voted_class <= class1;
-								end 
-								else begin
-									voted_class <= class2;
-								end
-							end
-						end 
-						else begin
-							voted_class <= class1;
-						end
+				if (ft2 <= 32'b00000000000000000000000000000100) begin
+					if (ft0 <= 32'b00000000000000000000000000000110) begin
+						voted_class <= class2;
 					end 
 					else begin
-						voted_class <= class2;
+						voted_class <= class1;
 					end
 				end 
 				else begin

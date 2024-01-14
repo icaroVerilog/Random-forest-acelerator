@@ -24,7 +24,17 @@ module tree84(
 				voted_class <= class1;
 			end 
 			else begin
-				voted_class <= class2;
+				if (ft3 <= 32'b00000000000000000000000000000001) begin
+					if (ft0 <= 32'b00000000000000000000000000000110) begin
+						voted_class <= class2;
+					end 
+					else begin
+						voted_class <= class1;
+					end
+				end 
+				else begin
+					voted_class <= class2;
+				end
 			end
 		end
 	end

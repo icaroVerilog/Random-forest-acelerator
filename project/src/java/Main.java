@@ -14,15 +14,15 @@ public class Main {
     private static String path;
 
     public static void main(String[] args) throws IOException {
-        dataset = "iris";
+        dataset = args[0];
         path = System.getProperty("user.dir");
 
         start();
     }
 
     public static void start() throws IOException{
-        PythonScriptCaller caller = new PythonScriptCaller();
-        caller.execute(path, dataset);
+        //PythonScriptCaller caller = new PythonScriptCaller();
+        //caller.execute(path, dataset);
 
         List<Tree> trees = Parser.execute(dataset);
 
@@ -36,8 +36,8 @@ public class Main {
 
         FPGAGenerator.execute("conditional");
 
-        PythonDatasetParserCaller a = new PythonDatasetParserCaller();
-        a.execute(path, dataset);
+        //PythonDatasetParserCaller a = new PythonDatasetParserCaller();
+        //a.execute(path, dataset);
 
         System.out.println("job finished: Success");
     }
