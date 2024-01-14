@@ -40,17 +40,12 @@ public class TreeGenerator extends BasicGenerator {
         String tab = generateTab(1);
         String header = "module tree" + treeIndex + "(\n";
         String FI = IntStream.range(0, featureQnt)
-                .mapToObj(index -> "ft" + index + "_exponent")
+                .mapToObj(index -> "ft" + index)
                 .collect(Collectors.joining(", ")
         );
-        String FF = IntStream.range(0, featureQnt)
-                .mapToObj(index -> "ft" + index + "_fraction")
-                .collect(Collectors.joining(", ")
-        );
-
         String clkAndOut = "clock, voted_class";
 
-        return header + tab + FI + ",\n" + tab + FF + ",\n" +
+        return header + tab + FI + ",\n" +
                tab + clkAndOut + "\n);\n";
     }
 
@@ -60,16 +55,12 @@ public class TreeGenerator extends BasicGenerator {
         String CLK = tab + "input wire clock;\n\n";
 
         String FI = IntStream.range(0, featureQnt)
-                .mapToObj(index -> tab + "input wire [31:0] ft" + index + "_exponent;\n")
-                .collect(Collectors.joining("")
-        );
-        String FF = IntStream.range(0, featureQnt)
-                .mapToObj(index -> tab + "input wire [31:0] ft" + index + "_fraction;\n")
+                .mapToObj(index -> tab + "input wire [31:0] ft" + index + ";\n")
                 .collect(Collectors.joining("")
         );
 
-        int bitwidth = (int) Math.ceil(Math.sqrt(classQnt));
-        String votedClass = "\n" + tab + "output reg [" + (bitwidth) + ":0] voted_class;\n\n\n";
+        int bitWidth = (int) Math.ceil(Math.sqrt(classQnt));
+        String votedClass =  tab + "output reg [" + (bitWidth) + ":0] voted_class;\n\n";
 
         int[][] oneHotMatrix = new int[classQnt][classQnt];
 
@@ -86,14 +77,14 @@ public class TreeGenerator extends BasicGenerator {
 
         String CL = IntStream.range(0, classQnt)
                 .mapToObj(
-                        index -> tab + "parameter class" + index + " = " + (bitwidth + 1) + "'b" +
+                        index -> tab + "parameter class" + index + " = " + (bitWidth + 1) + "'b" +
                                 Arrays.toString(oneHotMatrix[index])
                                         .replaceAll("[\\[\\]\\s]", "")
                                         .replace(",", "") + ";"
                 )
                 .collect(Collectors.joining("\n")
         );
-        return CLK + FI + "\n" + FF  + votedClass + CL;
+        return CLK + FI + "\n"  + votedClass + CL;
     }
 
     public String generateAlwaysBlock(){
@@ -130,21 +121,15 @@ public class TreeGenerator extends BasicGenerator {
     public String generateComparison(Comparisson c){
 
         var threshold = c.getThreshold().toString().split("\\.");
-        int intIntegralThreshold = Integer.parseInt(threshold[0]);
-        int intFractionalThreshold = Integer.parseInt(threshold[1]);
+        String integralThreshold = Integer.toBinaryString(Integer.parseInt(threshold[0]));
 
-        String binaryIntegralTh = String.format(FEATURE_BITWIDTH + "'b%" + FEATURE_BITWIDTH + "s", Integer.toBinaryString(intIntegralThreshold)).replaceAll(" ", "0");
-        String binaryFractionalTh = String.format(FEATURE_BITWIDTH + "'b%" + FEATURE_BITWIDTH + "s", Integer.toBinaryString(intFractionalThreshold)).replaceAll(" ", "0");
-
+        String binaryIntegralTh = String.format(FEATURE_BITWIDTH + "'b%" + FEATURE_BITWIDTH + "s", integralThreshold).replaceAll(" ", "0");
         String first = "";
-        String second = "";
 
         System.out.println(c.getComparissonType());
 
-        first += "(" + "ft" + c.getColumn() + "_exponent " + c.getComparissonType() + " " + binaryIntegralTh + ")";
-        second += "((" + "ft" + c.getColumn() + "_exponent == " + binaryIntegralTh + ") & ft" + c.getColumn() + "_fraction " + c.getComparissonType() + " " + binaryFractionalTh + ")";
-
-        return first + " | " + second;
+        first += "ft" + c.getColumn() + " " + c.getComparissonType() + " " + binaryIntegralTh;
+        return first;
     }
 
     public String generateEndDelimiters(){

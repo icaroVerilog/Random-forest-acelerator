@@ -34,7 +34,7 @@ public class Main {
             false
         );
 
-        FPGAGenerator.execute("table");
+        FPGAGenerator.execute("conditional");
 
         PythonDatasetParserCaller a = new PythonDatasetParserCaller();
         a.execute(path, dataset);

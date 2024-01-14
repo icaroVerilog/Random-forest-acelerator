@@ -56,10 +56,7 @@ public class ControllerGenerator extends BasicGenerator {
         moduleIO.add("voted");
 
         for (int index = 0; index < featureQnt; index++){
-            moduleIO.add("ft" + index + "_exponent");
-        }
-        for (int index = 0; index < featureQnt; index++){
-            moduleIO.add("ft" + index + "_fraction");
+            moduleIO.add("ft" + index );
         }
 
         sourceCode = "\n\n";
@@ -88,23 +85,11 @@ public class ControllerGenerator extends BasicGenerator {
         for (int index = 0; index < featureQnt; index++){
             sourceCode += tab(1);
             sourceCode += generatePort(
-                "ft" + index + "_exponent",
+                "ft" + index,
                 WIRE,
                 INPUT,
                 FEATURE_BITWIDTH,
                 false
-            );
-            sourceCode += "\n";
-        }
-
-        for (int index = 0; index < featureQnt; index++){
-            sourceCode += tab(1);
-            sourceCode += generatePort(
-                    "ft" + index + "_fraction",
-                    WIRE,
-                    INPUT,
-                    FEATURE_BITWIDTH,
-                    false
             );
             sourceCode += "\n";
         }
@@ -132,9 +117,7 @@ public class ControllerGenerator extends BasicGenerator {
         String indentation1 = tab(1);
         String indentation2 = tab(2);
 
-        String moduleFeatureExponent = ".ftZ_exponent(ftZ_exponent),";
-        String moduleFeatureFraction = ".ftZ_fraction(ftZ_fraction),";
-
+        String moduleFeatureExponent = ".ftZ(ftZ),";
         String sourceCode = "";
         String processed = "";
         String module = MODULE_INSTANCE;
@@ -144,21 +127,6 @@ public class ControllerGenerator extends BasicGenerator {
 
         for (int index = 0; index < featureQnt; index++){
             processed = moduleFeatureExponent.replace("Z", Integer.toString(index));
-            sourceCode += "\n";
-
-            sourceCode += indentation2 + processed;
-        }
-
-        for (int index = 0; index < featureQnt; index++){
-
-            if (index == featureQnt - 1){
-                processed = moduleFeatureFraction.replace("Z", Integer.toString(index));
-                int commaPosition = processed.lastIndexOf(",");
-                processed = processed.substring(0, commaPosition);
-            }
-            else {
-                processed = moduleFeatureFraction.replace("Z", Integer.toString(index));
-            }
             sourceCode += "\n";
 
             sourceCode += indentation2 + processed;
@@ -192,16 +160,11 @@ public class ControllerGenerator extends BasicGenerator {
 
         if (debugMode) {
             String readmemExponent = IntStream.range(0, featureQnt)
-                    .mapToObj(index -> tab2 + "$readmemb(" + '"' + "dataset/feature" + index + "_exponent.bin" + '"' + ", mem_feature_" + index + "_e);")
+                    .mapToObj(index -> tab2 + "$readmemb(" + '"' + "dataset/feature" + index + ".bin" + '"' + ", mem_feature_" + index + "_e);")
                     .collect(Collectors.joining("\n")
                     );
 
-            String readmemFraction = IntStream.range(0, featureQnt)
-                    .mapToObj(index -> tab2 + "$readmemb(" + '"' + "dataset/feature" + index + "_fraction.bin" + '"' + ", mem_feature_" + index + "_f);")
-                    .collect(Collectors.joining("\n")
-                    );
-
-            return initialBlockOpen + classSetup + "\n" + counterSetup + readmemExponent + "\n" + readmemFraction + "\n\n" + initialBlockClose;
+            return initialBlockOpen + classSetup + "\n" + counterSetup + readmemExponent + "\n\n" + initialBlockClose;
         }
         else {
             return initialBlockOpen + classSetup + "\n" + initialBlockClose;

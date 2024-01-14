@@ -69,8 +69,7 @@ public class ApiGenerator extends BasicGenerator {
         String ind = tab(1);
         String ind2 = tab(2);
 
-        String moduleFeatureExponent = ".ftZ_exponent(features[Y:X]),";
-        String moduleFeatureFraction = ".ftZ_fraction(features[Y:X]),";
+        String moduleFeatureExponent = ".ftZ(features[Y:X]),";
 
         String sourceCode = "";
         String processed = "";
@@ -82,31 +81,16 @@ public class ApiGenerator extends BasicGenerator {
         sourceCode += ind2 + ".clock(clock),\n";
         sourceCode += ind2 + ".voted(voted),";
 
-        for (int index = 0; index < featureQnt * 2; index++){
-            if (index % 2 == 0){
-                if (index == 0){
-                    processed = moduleFeatureFraction
-                            .replace("Z", Integer.toString(numberIndexCounter))
-                            .replace("Y", Integer.toString(FEATURE_BITWIDTH - 1))
-                            .replace("X", Integer.toString(0));
-                }
-                else {
-                    processed = moduleFeatureFraction
-                            .replace("Z", Integer.toString(numberIndexCounter))
-                            .replace("Y", Integer.toString((FEATURE_BITWIDTH * index + FEATURE_BITWIDTH) - 1))
-                            .replace("X", Integer.toString(FEATURE_BITWIDTH * index));
-                }
-            }
-            else {
-                processed = moduleFeatureExponent
-                        .replace("Z", Integer.toString(numberIndexCounter))
-                        .replace("Y", Integer.toString((FEATURE_BITWIDTH * counter + FEATURE_BITWIDTH) - 1))
-                        .replace("X", Integer.toString(FEATURE_BITWIDTH * counter));
+        for (int index = 0; index < featureQnt; index++){
 
-                if (index == (featureQnt * 2) - 1){
-                    int commaPosition = processed.lastIndexOf(",");
-                    processed = processed.substring(0, commaPosition);
-                }
+            processed = moduleFeatureExponent
+                    .replace("Z", Integer.toString(numberIndexCounter))
+                    .replace("Y", Integer.toString((FEATURE_BITWIDTH * counter + FEATURE_BITWIDTH) - 1))
+                    .replace("X", Integer.toString(FEATURE_BITWIDTH * counter));
+
+            if (index == (featureQnt * 2) - 1){
+                int commaPosition = processed.lastIndexOf(",");
+                processed = processed.substring(0, commaPosition);
             }
 
             sourceCode += "\n";
