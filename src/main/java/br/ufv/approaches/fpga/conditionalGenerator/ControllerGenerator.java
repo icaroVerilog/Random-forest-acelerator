@@ -30,8 +30,8 @@ public class ControllerGenerator extends BasicGenerator {
             src += generateModuleInstantiation(featureQnt, index);
         }
 
-//        sourceCode += generateInitialBlock(featureQnt, classQnt, debugMode);
-        src += generateAlwaysBlock(featureQnt, samplesQnt, classQnt, treeQnt, debugMode);
+        //sourceCode += generateInitialBlock(featureQnt, classQnt, debugMode);
+        //src += generateAlwaysBlock(featureQnt, samplesQnt, classQnt, treeQnt, debugMode);
 
         FileBuilder.execute(src, Context.outputPath +"/" + dataset + "/controller.v");
     }
