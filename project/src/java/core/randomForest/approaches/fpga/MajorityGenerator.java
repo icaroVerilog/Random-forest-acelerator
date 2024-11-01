@@ -1,11 +1,9 @@
-package project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer;
+package project.src.java.core.randomForest.approaches.fpga;
 
-import project.src.java.core.randomForest.approaches.fpga.BasicGenerator;
 import project.src.java.util.FileBuilder;
 import project.src.java.util.executionSettings.CLI.ConditionalEquationMux.SettingsCli;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 public class MajorityGenerator extends BasicGenerator {
@@ -32,36 +30,24 @@ public class MajorityGenerator extends BasicGenerator {
     public String generateHeader(String module_name, int classQnt){
         String src = "";
 
-        String[] basicIOPorts = {"voted"};
-
-        ArrayList<String> ioPorts = new ArrayList<>(List.of(basicIOPorts));
+        src += "module majority (\n";
+        src += tab(1) + "voted,\n";
 
         for (int index = 0; index < classQnt; index++) {
-            ioPorts.add(String.format("class%d_votes", index));
-        }
+            if (index == classQnt - 1){
+                src += tab(1) + String.format("class%d_votes", index);
+            } else {
+                src += tab(1) + String.format("class%d_votes,", index);
+            }
 
-        src += String.format("module %s (\n", module_name);
-
-        for (int index = 0; index <= ioPorts.size(); index++){
-            if (index == ioPorts.size()){
-                src += ");\n";
-            }
-            else if (index == ioPorts.size() - 1){
-                src += tab(1) + ioPorts.get(index) + "\n";
-            }
-            else {
-                src += tab(1) + ioPorts.get(index) + ",\n";
-            }
         }
+        src += ");\n";
         return src;
     }
 
     private String generatePortDeclaration(int treeQnt, int classQnt){
         int bitwidth = (int) Math.ceil(Math.sqrt(classQnt));
 
-//        if (bitwidth == 2){
-//            bitwidth = 1;
-//        }
         String src = "";
         int sumBitwidth = (int)(Math.log(Math.abs(treeQnt)) / Math.log(2)) + 1;
 

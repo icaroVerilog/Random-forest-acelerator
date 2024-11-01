@@ -1,4 +1,4 @@
-package project.src.java.core.randomForest.approaches.fpga.tableGenerator.tableEntryDataStructures.raw;
+package project.src.java.core.randomForest.approaches.fpga.table.tableEntryDataStructures.raw;
 
 public class RawTableEntryOuterNode extends RawTableEntry {
     private Integer nodeClass;

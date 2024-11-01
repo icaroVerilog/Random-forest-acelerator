@@ -1,11 +1,9 @@
-package project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer;
+package project.src.java.core.randomForest.approaches.fpga;
 
-import project.src.java.core.randomForest.approaches.fpga.BasicGenerator;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Tree;
 import project.src.java.util.FileBuilder;
 import project.src.java.util.executionSettings.CLI.ConditionalEquationMux.SettingsCli;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ControllerGenerator extends BasicGenerator {
@@ -44,7 +42,6 @@ public class ControllerGenerator extends BasicGenerator {
 
         String src = "";
 
-        src += generateImports(trees.size());
         src += generateHeader(this.MODULE_NAME, featureQnt);
         src += generateIO(featureQnt, classQnt, trees.size());
 
@@ -52,12 +49,11 @@ public class ControllerGenerator extends BasicGenerator {
             src += generateTreeModuleInstantiation(featureQnt, index);
         }
         for (int index = 0; index < classQnt; index++) {
-            src += generateModuleAdder(trees.size(), index);
+            src += generateAdderModuleInstantiation(trees.size(), index);
         }
 
-        src += generateModuleMajority(classQnt);
-        src += generateAlways(trees.size());
-        src += generateEndDelimiters();
+        src += generatorMajorityModuleInstantiation(classQnt);
+        src += generateAlwaysBlock(trees.size());
 
         FileBuilder.execute(
             src, String.format(
@@ -71,47 +67,18 @@ public class ControllerGenerator extends BasicGenerator {
         );
     }
 
-    private String generateImports(int treeQuantity){
-        String src = "";
-
-        for (int index = 0; index < treeQuantity; index++) {
-            src += String.format("`include \"tree%d.v\"\n", index);
-        }
-        src += "`include \"adder.v\"\n";
-        src += "`include \"majority.v\"\n\n";
-
-        return src;
-    }
-
     private String generateHeader(String module_name, int featureQnt){
         String src = "";
 
-        String[] basicIOPorts = {
-            "reset",
-            "clock",
-            "compute_vote",
-            "forest_vote"
-        };
+        src += "module controller (\n";
 
-        ArrayList<String> ioPorts = new ArrayList<>(List.of(basicIOPorts));
+        src += tab(1) + "clock,\n";
+        src += tab(1) + "reset,\n";
+        src += tab(1) + "compute_vote,\n";
+        src += tab(1) + "forest_vote,\n";
+        src += tab(1) + "features\n";
+        src += ");\n";
 
-        for (int index = 0; index < featureQnt; index++) {
-            ioPorts.add(String.format("feature%d", index));
-        }
-
-        src += String.format("module %s (\n", module_name);
-
-        for (int index = 0; index <= ioPorts.size(); index++){
-            if (index == ioPorts.size()){
-                src += ");\n";
-            }
-            else if (index == ioPorts.size() - 1){
-                src += tab(1) + ioPorts.get(index) + "\n";
-            }
-            else {
-                src += tab(1) + ioPorts.get(index) + ",\n";
-            }
-        }
         return src;
     }
 
@@ -125,9 +92,8 @@ public class ControllerGenerator extends BasicGenerator {
         src += tab(1) + generatePort("reset", WIRE, INPUT, 1, true);
         src += "\n";
 
-        for (int index = 0; index < featureQnt; index++){
-            src += tab(1) + generatePort("feature" + index, WIRE, INPUT, this.precision, true);
-        }
+        src += tab(1) + generatePort("features", WIRE, INPUT, this.precision * featureQnt, true);
+
         src += "\n";
         src += tab(1) + generatePort("forest_vote", REGISTER, OUTPUT, outputBitwidth, true);
         src += tab(1) + generatePort("compute_vote", REGISTER, OUTPUT, 1, true);
@@ -158,17 +124,9 @@ public class ControllerGenerator extends BasicGenerator {
 
         src += tab(2) + ".clock(clock),\n";
         src += tab(2) + ".reset(reset),\n";
-
         src += tab(2) + String.format(".voted_class(voted_class%d),\n", treeIndex);
         src += tab(2) + String.format(".compute_vote(compute_vote%d),\n", treeIndex);
-
-        for (int index = 0; index < featureQnt; index++) {
-            if (index + 1 == featureQnt) {
-                src += tab(2) + String.format(".feature%d(feature%d)", index, index);
-            } else {
-                src += tab(2) + String.format(".feature%d(feature%d),\n", index, index);
-            }
-        }
+        src += tab(2) + ".features(features)";
 
         String module = MODULE_INSTANCE;
         module = module
@@ -179,7 +137,7 @@ public class ControllerGenerator extends BasicGenerator {
         return module;
     }
 
-    private String generateModuleAdder(int treeQnt, int classNumber){
+    private String generateAdderModuleInstantiation(int treeQnt, int classNumber){
         String src = "";
 
         src += tab(2) + ".sum(sum_class" + classNumber + "),\n";
@@ -201,7 +159,7 @@ public class ControllerGenerator extends BasicGenerator {
         return module;
     }
 
-    private String generateModuleMajority(int classQnt){
+    private String generatorMajorityModuleInstantiation(int classQnt){
         String src = "";
 
         src += tab(2) + ".voted(w_forest_vote),\n";
@@ -224,7 +182,7 @@ public class ControllerGenerator extends BasicGenerator {
         return module;
     }
 
-    private String generateAlways(int treeQnt){
+    private String generateAlwaysBlock(int treeQnt){
 
         String computeVoteConditional = CONDITIONAL_BLOCK;
         String computeVoteExpr = "";
@@ -262,6 +220,6 @@ public class ControllerGenerator extends BasicGenerator {
             .replace("src", src)
             .replace("ind", tab(1));
 
-        return always;
+        return always + "endmodule";
     }
 }

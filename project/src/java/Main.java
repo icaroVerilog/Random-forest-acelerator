@@ -37,9 +37,9 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         path = System.getProperty("user.dir");
-        Binarize b = new Binarize();
-        b.execute("iris.csv", path);
-        System.out.println(path);
+//        Binarize b = new Binarize();
+//        b.execute("iris.csv", path);
+//        System.out.println(path);
 
         ExecutionSettingsParser settingsParser = new ExecutionSettingsParser();
         InputJsonValidator inputJsonValidator = new InputJsonValidator();
@@ -108,7 +108,8 @@ public class Main {
                 parameter.getParameter().equals(ValidParameters.START_MUX_INFERENCE) ||
                 parameter.getParameter().equals(ValidParameters.START_EQUATION_INFERENCE) ||
                 parameter.getParameter().equals(ValidParameters.START_IF_PIPELINED_INFERENCE) ||
-                parameter.getParameter().equals(ValidParameters.START_TABLE_INFERENCE)
+                parameter.getParameter().equals(ValidParameters.START_TABLE_INFERENCE) ||
+                parameter.getParameter().equals(ValidParameters.START_PARALLEL_TABLE_INFERENCE)
             ) {
                 if (settingsCLI.dataset != null & settingsCLI.trainingParameters != null) {
                     SettingsCli settings = new SettingsCli();
@@ -176,6 +177,16 @@ public class Main {
                             settings.approach = "table";
 
                             FPGAGenerator.executeTableApproach(
+                                trees,
+                                Parser.getClassQuantity(),
+                                Parser.getFeatureQuantity(),
+                                settings
+                            );
+                            break;
+                        case ValidParameters.START_PARALLEL_TABLE_INFERENCE:
+                            settings.approach = "parallel_table";
+
+                            FPGAGenerator.executeParallelTableApproach(
                                 trees,
                                 Parser.getClassQuantity(),
                                 Parser.getFeatureQuantity(),

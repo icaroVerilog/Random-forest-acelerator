@@ -1,4 +1,4 @@
-package project.src.java.core.randomForest.approaches.fpga.tableGenerator.tableEntryDataStructures.binary;
+package project.src.java.core.randomForest.approaches.fpga.table.tableEntryDataStructures.binary;
 
 public class BinaryTableEntry {
     private final String nodeFlag;

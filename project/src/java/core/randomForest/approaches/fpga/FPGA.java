@@ -1,15 +1,14 @@
 package project.src.java.core.randomForest.approaches.fpga;
 
 
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.conditionalGenerator.ConditionalFPGAGenerator;
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.equationGenerator.EquationFPGAGenerator;
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.multiplexerGenerator.MultiplexerFPGAGenerator;
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.pipeline.PipelineFPGAGenerator;
-import project.src.java.core.randomForest.approaches.fpga.tableGenerator.TableFPGAGenerator;
+import project.src.java.core.randomForest.approaches.fpga.conditionalGenerator.ConditionalFPGAGenerator;
+import project.src.java.core.randomForest.approaches.fpga.equationGenerator.EquationFPGAGenerator;
+import project.src.java.core.randomForest.approaches.fpga.multiplexerGenerator.MultiplexerFPGAGenerator;
+import project.src.java.core.randomForest.approaches.fpga.pipeline.PipelineFPGAGenerator;
+import project.src.java.core.randomForest.approaches.fpga.table.parallelTableGenerator.ParallelTableFPGAGenerator;
+import project.src.java.core.randomForest.approaches.fpga.table.tableGenerator.TableFPGAGenerator;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Tree;
 import project.src.java.util.executionSettings.CLI.ConditionalEquationMux.SettingsCli;
-import project.src.java.util.executionSettings.CLI.Table.SettingsCliT;
-import project.src.java.util.executionSettings.JSON.ExecutionSettingsData.Settings;
 
 import java.io.IOException;
 import java.util.List;
@@ -75,6 +74,19 @@ public class FPGA {
         var tableGenerator = new TableFPGAGenerator();
 
         tableGenerator.execute(
+            treeList,
+            classQnt,
+            featureQnt,
+            settings
+        );
+    }
+
+    public void executeParallelTableApproach(List<Tree> treeList, int classQnt, int featureQnt, SettingsCli settings) throws  IOException {
+        System.out.println("parallel table approach\n");
+
+        var parallelTableGenerator = new ParallelTableFPGAGenerator();
+
+        parallelTableGenerator.execute(
             treeList,
             classQnt,
             featureQnt,

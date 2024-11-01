@@ -1,9 +1,9 @@
-package project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.multiplexerGenerator;
+package project.src.java.core.randomForest.approaches.fpga.multiplexerGenerator;
 
 import project.src.java.core.randomForest.approaches.fpga.ApiGenerator;
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.AdderGenerator;
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.ControllerGenerator;
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.MajorityGenerator;
+import project.src.java.core.randomForest.approaches.fpga.AdderGenerator;
+import project.src.java.core.randomForest.approaches.fpga.ControllerGenerator;
+import project.src.java.core.randomForest.approaches.fpga.MajorityGenerator;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Tree;
 import project.src.java.util.FileBuilder;
 import project.src.java.util.executionSettings.CLI.ConditionalEquationMux.SettingsCli;

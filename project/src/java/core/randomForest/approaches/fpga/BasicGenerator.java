@@ -71,6 +71,18 @@ public class BasicGenerator {
         );
     }
 
+    protected String toOneHot(int value, int bitCount) {
+        String oneHot = "";
+        for (int i = 0; i < bitCount; i++) {
+            if (i == value) {
+                oneHot += "1";
+            } else {
+                oneHot += "0";
+            }
+        }
+        return oneHot;
+    }
+
     protected String toBin(int value, int bitwidth){
         return String.format("%" + bitwidth + "s", Integer.toBinaryString(value)).replaceAll(" ", "0");
     }

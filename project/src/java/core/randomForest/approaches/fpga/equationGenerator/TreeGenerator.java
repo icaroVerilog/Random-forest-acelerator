@@ -1,6 +1,6 @@
-package project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.equationGenerator;
+package project.src.java.core.randomForest.approaches.fpga.equationGenerator;
 
-import project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer.BaseTreeGenerator;
+import project.src.java.core.randomForest.approaches.fpga.BaseTreeGenerator;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Nodes.InnerNode;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Nodes.Node;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Nodes.OuterNode;

@@ -14,6 +14,7 @@ public class ValidParameters {
 	public static final String START_EQUATION_INFERENCE 	= "gen_eq_design";
 	public static final String START_TABLE_INFERENCE    	= "gen_tb_design";
 	public static final String START_IF_PIPELINED_INFERENCE = "gen_ifp_design";
+	public static final String START_PARALLEL_TABLE_INFERENCE = "gen_ptb_design";
 
 	public static final String BINARIZE_DATASET				= "binarize_dataset";
 

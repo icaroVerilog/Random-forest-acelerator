@@ -1,6 +1,5 @@
-package project.src.java.core.randomForest.approaches.fpga.conditionalEquationMultiplexer;
+package project.src.java.core.randomForest.approaches.fpga;
 
-import project.src.java.core.randomForest.approaches.fpga.BasicGenerator;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Comparison;
 
 import java.util.ArrayList;

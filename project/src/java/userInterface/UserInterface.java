@@ -123,6 +123,13 @@ public class UserInterface {
 						);
 						parameter.add(ValidParameters.START_TABLE_INFERENCE, "", "");
 						break;
+					case ValidParameters.START_PARALLEL_TABLE_INFERENCE:
+						parameter = new Parameter(
+							Arrays.asList("-p"),
+							Arrays.asList("text")
+						);
+						parameter.add(ValidParameters.START_PARALLEL_TABLE_INFERENCE, "", "");
+						break;
 					case ValidParameters.EXIT:
 						parameter = new Parameter();
 						parameter.add(ValidParameters.EXIT, "", "");
