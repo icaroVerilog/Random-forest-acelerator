@@ -54,8 +54,8 @@ public class TreeGenerator extends BasicGenerator {
 			Tree currentTree = treeList.get(index);
 			ArrayList<Tree> singleTreeList = new ArrayList<>();
 			singleTreeList.add(currentTree);
-
 			ArrayList<BinaryTableEntry> entries = tableEntryGenerator.execute(singleTreeList, this.precision, true);
+			singleTreeList.clear();
 
 			nodeQntByTree.add(currentTree.getInnerNodes().size() + currentTree.getOuterNodes().size());
 			int nodeQnt = currentTree.getInnerNodes().size() + currentTree.getOuterNodes().size();
@@ -82,14 +82,12 @@ public class TreeGenerator extends BasicGenerator {
 			);
 		}
 
-		reportGenerator.createEntry(
+		reportGenerator.generateReport(
 			settings.dataset,
 			settings.approach,
 			settings.trainingParameters.maxDepth,
 			nodeQntByTree
 		);
-
-		reportGenerator.generateReport();
 	}
 
 	private String generateHeader(int index){
@@ -152,7 +150,7 @@ public class TreeGenerator extends BasicGenerator {
 
 		String src = "";
 		src += tab(1) + String.format(
-			"assign tree_vote_w = nodes_table[next][%d:0];\n",
+			"assign voted_class_w = nodes_table[next][%d:0];\n",
 			this.tableIndexerBitwidth - 1
 		);
 		src += tab(1) + String.format(
@@ -170,7 +168,8 @@ public class TreeGenerator extends BasicGenerator {
 
 		src += tab(1) + "assign feature_w = {\n";
 		for (int index = (this.precision * featureQuantity) - 1; index >= (this.precision * featureQuantity) - this.precision; index--) {
-			if (index != 0){
+
+			if (index != (this.precision * featureQuantity) - this.precision){
 				src += tab(2) + String.format("features[%d - (column_w * %d)],\n", index, this.precision);
 			} else {
 				src += tab(2) + String.format("features[%d - (column_w * %d)]\n",  index, this.precision);

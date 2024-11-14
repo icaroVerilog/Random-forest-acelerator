@@ -72,15 +72,15 @@ public class BasicGenerator {
     }
 
     protected String toOneHot(int value, int bitCount) {
-        String oneHot = "";
+        StringBuilder onehot = new StringBuilder();
         for (int i = 0; i < bitCount; i++) {
-            if (i == value) {
-                oneHot += "1";
+            if (i+1 == value) {
+                onehot.insert(0, "1");
             } else {
-                oneHot += "0";
+                onehot.insert(0, "0");
             }
         }
-        return oneHot;
+        return onehot.toString();
     }
 
     protected String toBin(int value, int bitwidth){

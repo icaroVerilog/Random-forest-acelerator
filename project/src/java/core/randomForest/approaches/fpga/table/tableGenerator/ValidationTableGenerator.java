@@ -20,9 +20,8 @@ public class ValidationTableGenerator extends BasicGenerator {
     private int voteCounterBitwidth;
 
     public void execute(
-        int classQuantity,
-        int featureQuantity,
-        int classBitwidth,
+        int classQnt,
+        int featureQnt,
         List<Tree> treeList,
         SettingsCli settings
     ){
@@ -68,11 +67,11 @@ public class ValidationTableGenerator extends BasicGenerator {
 
         src += generateHeader();
         src += generateIEE754ComparatorFunction(this.precision);
-        src += generatePortInstantiation(featureQuantity, classBitwidth);
-        src += generateInternalVariables(tableEntries.size(), classQuantity);
-        src += generateWireAssign(featureQuantity);
-        src += generateMainAlways(classQuantity, classBitwidth, tableEntries);
-        src += generateComputeForestVoteAlways(classQuantity, classBitwidth);
+        src += generatePortInstantiation(featureQnt, classQnt);
+        src += generateInternalVariables(tableEntries.size(), classQnt);
+        src += generateWireAssign(featureQnt);
+        src += generateMainAlways(classQnt, tableEntries);
+        src += generateComputeForestVoteAlways(classQnt);
 
         FileBuilder.execute(
             src, String.format(
@@ -87,14 +86,12 @@ public class ValidationTableGenerator extends BasicGenerator {
         ArrayList<Integer> nodeQntByTree = new ArrayList<>();
         nodeQntByTree.add(tableEntries.size());
 
-        reportGenerator.createEntry(
+        reportGenerator.generateReport(
             settings.dataset,
             settings.approach,
             settings.trainingParameters.maxDepth,
             nodeQntByTree
         );
-
-        reportGenerator.generateReport();
     }
 
     private String generateHeader(){
@@ -111,8 +108,9 @@ public class ValidationTableGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generatePortInstantiation (int featureQnt, int classBitwidth){
+    private String generatePortInstantiation (int featureQnt, int classQnt){
         int comparedValueBusBitwidth = featureQnt * this.precision;
+        int classBitwidth = (int) Math.ceil(Math.log(classQnt) / Math.log(2));
 
         String src = "";
         src += tab(1) + generatePort("clock", WIRE, INPUT, 1, true);
@@ -126,7 +124,7 @@ public class ValidationTableGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateInternalVariables(int nodeQuantity, int classQuantity){
+    private String generateInternalVariables(int nodeQuantity, int classQnt){
         String src = "";
 
         int tableEntryBitwidth = this.precision + this.comparedColumnBitwidth + (this.tableIndexerBitwidth * 2) + 1;
@@ -136,7 +134,7 @@ public class ValidationTableGenerator extends BasicGenerator {
         src += tab(1) + generatePort("counter", REGISTER, NONE, 2, true);
         src += "\n";
 
-        for (int index = 0; index <= classQuantity - 1; index++){
+        for (int index = 0; index <= classQnt - 1; index++){
             src += tab(1) + generatePort("class" + (index+1), REGISTER, NONE, this.voteCounterBitwidth, true);
         }
         src += tab(1) + generatePort("ready", REGISTER, NONE, 1, true);
@@ -150,7 +148,7 @@ public class ValidationTableGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateWireAssign(int featureQuantity){
+    private String generateWireAssign(int featureQnt){
 
         int tableEntryBitwidth = this.precision + this.comparedColumnBitwidth + (this.tableIndexerBitwidth * 2) + 1;
 
@@ -173,8 +171,8 @@ public class ValidationTableGenerator extends BasicGenerator {
         src += "\n";
 
         src += tab(1) + "assign feature_w = {\n";
-        for (int index = (this.precision * featureQuantity) - 1; index >= (this.precision * featureQuantity) - this.precision; index--) {
-            if (index != (this.precision * featureQuantity) - this.precision){
+        for (int index = (this.precision * featureQnt) - 1; index >= (this.precision * featureQnt) - this.precision; index--) {
+            if (index != (this.precision * featureQnt) - this.precision){
                 src += tab(2) + String.format("features[%d - (column_w * %d)],\n", index, this.precision);
             } else {
                 src += tab(2) + String.format("features[%d - (column_w * %d)]\n",  index, this.precision);
@@ -186,10 +184,10 @@ public class ValidationTableGenerator extends BasicGenerator {
     }
 
     private String generateMainAlways(
-        int classQuantity,
-        int classBitwidth,
+        int classQnt,
         ArrayList<BinaryTableEntry> tableEntries
     ){
+        int classBitwidth = (int) Math.ceil(Math.log(classQnt) / Math.log(2));
 
         /*************************** RESET BLOCK ****************************/
 
@@ -215,7 +213,7 @@ public class ValidationTableGenerator extends BasicGenerator {
         resetBlockBody += tab(3) + "ready <= 1'b1;\n";
         resetBlockBody += tab(3) + "compute_vote <= 1'b0;\n";
 
-        for (int index = 1; index <= classQuantity; index++){
+        for (int index = 1; index <= classQnt; index++){
             resetBlockBody += tab(3) + String.format("class%d <= %d'b%s;\n", index, this.voteCounterBitwidth, decimalToBinary(0, this.voteCounterBitwidth));
         }
 
@@ -269,7 +267,7 @@ public class ValidationTableGenerator extends BasicGenerator {
 
         String voteCounterBlocks = "";
 
-        for (int index = 1; index <= classQuantity; index++){
+        for (int index = 1; index <= classQnt; index++){
             String voteCounterBlock = CONDITIONAL_BLOCK;
             String voteCounterBlockExpr = String.format("tree_vote_w == %d'b%s", this.tableIndexerBitwidth, decimalToBinary(index, this.tableIndexerBitwidth));
             String voteCounterBlockBody = String.format("%sclass%d <= class%d + 1'b1;\n",tab(6), index, index);
@@ -279,7 +277,7 @@ public class ValidationTableGenerator extends BasicGenerator {
                 .replace("`", voteCounterBlockBody)
                 .replace("ind", tab(5));
 
-            if (index == classQuantity){
+            if (index == classQnt){
                 voteCounterBlocks += voteCounterBlock;
             } else {
                 voteCounterBlocks += voteCounterBlock + "\n";
@@ -334,7 +332,7 @@ public class ValidationTableGenerator extends BasicGenerator {
         String resetCounterBlockExpr = "compute_vote";
         String resetCounterBlockBody = "";
 
-        for (int index = 1; index <= classQuantity; index++){
+        for (int index = 1; index <= classQnt; index++){
             String bits = "";
             for (int index2 = 0; index2 <= this.voteCounterBitwidth - 1; index2++){
                 bits += "0";
@@ -390,22 +388,23 @@ public class ValidationTableGenerator extends BasicGenerator {
         return mainAlways;
     }
 
-    private String generateComputeForestVoteAlways(int classQuantity, int classBitwidth){
+    private String generateComputeForestVoteAlways(int classQnt){
+        int classBitwidth = (int) Math.ceil(Math.log(classQnt) / Math.log(2));
 
         String src = "";
 
         ArrayList<String> classes = new ArrayList<>();
-        for (int index = 0; index < classQuantity; index++){
+        for (int index = 0; index < classQnt; index++){
             classes.add(String.format("class%d", index + 1));
         }
 
-        for (int index1 = 0; index1 < classQuantity; index1++) {
+        for (int index1 = 0; index1 < classQnt; index1++) {
 
             String computeMajorClassBlock = CONDITIONAL_BLOCK;
             String computeMajorClassBlockExpr = "";
             String computeMajorClassBlockBody = "";
 
-            for (int index2 = 0; index2 < classQuantity; index2++) {
+            for (int index2 = 0; index2 < classQnt; index2++) {
                 if (Objects.equals(classes.get(index1), classes.get(index2))) {
                     continue;
                 }

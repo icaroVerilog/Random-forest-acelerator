@@ -35,9 +35,9 @@ public class MajorityGenerator extends BasicGenerator {
 
         for (int index = 0; index < classQnt; index++) {
             if (index == classQnt - 1){
-                src += tab(1) + String.format("class%d_votes", index);
+                src += tab(1) + String.format("class%d_votes\n", index);
             } else {
-                src += tab(1) + String.format("class%d_votes,", index);
+                src += tab(1) + String.format("class%d_votes,\n", index);
             }
 
         }
@@ -46,7 +46,7 @@ public class MajorityGenerator extends BasicGenerator {
     }
 
     private String generatePortDeclaration(int treeQnt, int classQnt){
-        int bitwidth = (int) Math.ceil(Math.sqrt(classQnt));
+        int bitwidth = (int) Math.ceil(Math.log(classQnt) / Math.log(2));
 
         String src = "";
         int sumBitwidth = (int)(Math.log(Math.abs(treeQnt)) / Math.log(2)) + 1;

@@ -18,7 +18,7 @@ public class TreeGenerator extends BaseTreeGenerator {
     private int comparedValueBitwidth;
     private int precision;
 
-    public void execute(List<Tree> trees, Integer classQnt, Integer featureQnt, SettingsCli settings){
+    public void execute(List<Tree> trees, int classQnt, int featureQnt, SettingsCli settings){
         switch (settings.inferenceParameters.precision){
             case "double":
                 this.precision = DOUBLE_PRECISION;
@@ -64,7 +64,7 @@ public class TreeGenerator extends BaseTreeGenerator {
         }
 
         // TODO: "ajustar para receber o max depth de forma correta"
-        reportGenerator.createEntry(
+        reportGenerator.generateReport(
             settings.dataset,
             settings.approach,
             settings.trainingParameters.maxDepth,

@@ -12,7 +12,7 @@ public class ControllerGenerator extends BasicGenerator {
     private int comparedColumnBitwidth;
     private int tableIndexerBitwidth;
 
-    public void execute(int classBitwidth, int featureQuantity, int treeQuantity, SettingsCli settings){
+    public void execute(int featureQuantity, int treeQuantity, int classQnt, SettingsCli settings){
         System.out.println("generating controller");
 
         switch (settings.inferenceParameters.precision){
@@ -30,16 +30,23 @@ public class ControllerGenerator extends BasicGenerator {
                 break;
         }
 
+        // TODO: Ajustar para serem parâmetros variáveis
         this.comparedColumnBitwidth = 8;
         this.tableIndexerBitwidth   = 32;
 
         String src = "";
 
         src += generateHeader();
-        src += generateIO(featureQuantity, classBitwidth);
-        src += generateInternalVariables(treeQuantity);
-        src += generateTreeInstantiation(treeQuantity);
-        src += generateAlwaysBlock(classBitwidth, treeQuantity);
+        src += generateIO(featureQuantity, classQnt);
+        src += generateInternalVariables(treeQuantity, classQnt);
+        src += generateTreeModuleInstantiation(treeQuantity);
+
+        for (int index = 0; index < classQnt; index++) {
+            src += generateAdderModuleInstantiation(treeQuantity, index);
+        }
+
+        src += generatorMajorityModuleInstantiation(classQnt);
+        src += generateAlwaysBlock(classQnt, treeQuantity);
 
         FileBuilder.execute(
             src, String.format(
@@ -68,8 +75,9 @@ public class ControllerGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateIO(int featureQuantity, int classBitwidth){
+    private String generateIO(int featureQuantity, int classQuantity){
         int featuresBusBitwidth = this.precision * featureQuantity;
+        int classBitwidth = (int) Math.ceil(Math.log(classQuantity) / Math.log(2));
 
         String src = "";
 
@@ -85,7 +93,10 @@ public class ControllerGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateInternalVariables(int treeQuantity){
+    private String generateInternalVariables(int treeQuantity, int classQuantity){
+        int sumBitwidth = (int) Math.ceil(Math.sqrt(treeQuantity));
+        int classBitwidth = (int) Math.ceil(Math.log(classQuantity) / Math.log(2));
+
         String src = "";
 
         for (int index = 0; index < treeQuantity; index++) {
@@ -93,11 +104,26 @@ public class ControllerGenerator extends BasicGenerator {
         }
         src += "\n";
 
+        for (int index = 0; index < classQuantity; index++) {
+            src += tab(1) + generatePort("sum_class" + index, WIRE, NONE, sumBitwidth, true);
+        }
+        src += "\n";
+
+        for (int index = 0; index < treeQuantity; index++) {
+            src += tab(1) + generatePort(String.format("tree%d_vote_w", index), WIRE, NONE, this.tableIndexerBitwidth, true);
+        }
+        src += tab(1) + generatePort("forest_vote_w", WIRE, NONE, classBitwidth, true);
+        src += "\n";
+
+        for (int index = 0; index < treeQuantity; index++) {
+            src += tab(1) + generatePort(String.format("tree%d_vote", index), REGISTER, NONE, this.tableIndexerBitwidth, true);
+        }
+        src += "\n";
+
         for (int index = 0; index < treeQuantity; index++) {
             src += tab(1) + generatePort(String.format("tree%d_compute_vote", index), REGISTER, NONE, 1, true);
         }
         src += "\n";
-
         src += tab(1) + generatePort("forest_vote_available", REGISTER, NONE, 1, true);
         src += tab(1) + generatePort("start_next", REGISTER, NONE, 1, true);
         src += "\n";
@@ -105,7 +131,7 @@ public class ControllerGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateTreeInstantiation(int treeQuantity){
+    private String generateTreeModuleInstantiation(int treeQuantity){
         String src = "";
 
         for (int index = 0; index < treeQuantity; index++) {
@@ -121,21 +147,87 @@ public class ControllerGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateAlwaysBlock(int classBitwidth, int treeQuantity){
-        String computeVoteConditional = CONDITIONAL_BLOCK;
-        String computeVoteExpr = "reset";
-        String computeVoteBody = "";
+    private String generateAdderModuleInstantiation(int treeQnt, int classNumber){
+        String src = "";
 
-        computeVoteBody += tab(3) + "compute_vote <= 1'b0;\n";
-        computeVoteBody += tab(3) + String.format(
+        src += tab(2) + ".sum(sum_class" + classNumber + "),\n";
+
+        for (int index = 0; index < treeQnt; index++) {
+            if (index + 1 == treeQnt) {
+                src += tab(2) + String.format(".vote%d(tree%d_vote[%d])", index, index, classNumber);
+            } else {
+                src += tab(2) + String.format(".vote%d(tree%d_vote[%d]),\n", index, index, classNumber);
+            }
+        }
+
+        String module = MODULE_VARIABLE_INSTANCE;
+        module = module
+            .replace("moduleName", "adder")
+            .replace("moduleVariableName", "adder" + classNumber)
+            .replace("ports", src)
+            .replace("ind", tab(1));
+        return module;
+    }
+
+    private String generatorMajorityModuleInstantiation(int classQnt){
+        String src = "";
+
+        src += tab(2) + ".voted(forest_vote_w),\n";
+
+        for (int index = 0; index < classQnt; index++) {
+            if (index + 1 == classQnt) {
+                src += tab(2) + String.format(".class%d_votes(sum_class%d)", index, index);
+            } else {
+                src += tab(2) + String.format(".class%d_votes(sum_class%d),\n", index, index);
+            }
+        }
+
+        String module = MODULE_INSTANCE;
+
+        module = module
+            .replace("moduleName", "majority")
+            .replace("ports", src)
+            .replace("ind", tab(1));
+
+        return module;
+    }
+
+    private String generateAlwaysBlock(int classQuantity, int treeQuantity){
+        int classBitwidth = (int) Math.ceil(Math.log(classQuantity) / Math.log(2));
+
+        String reset = CONDITIONAL_BLOCK;
+        String resetExpr = "reset";
+        String resetBody = "";
+
+        resetBody += tab(3) + "compute_vote <= 1'b0;\n";
+        resetBody += tab(3) + "start_next <= 1'b0;\n";
+        resetBody += tab(3) + "forest_vote_available <= 1'b0;\n";
+
+        for (int index = 0; index < treeQuantity; index++) {
+            resetBody += tab(3) + String.format(
+                "tree%d_compute_vote <= 1'b0;\n",
+                index
+            );
+        }
+
+        for (int index = 0; index < treeQuantity; index++) {
+            resetBody += tab(3) + String.format(
+                "tree%d_vote <= %d'b%s;\n",
+                index,
+                this.tableIndexerBitwidth,
+                toBin(0, this.tableIndexerBitwidth)
+            );
+        }
+
+        resetBody += tab(3) + String.format(
             "forest_vote <= %d'b%s;\n",
             classBitwidth,
             toBin(0, classBitwidth)
         );
 
-        computeVoteConditional = computeVoteConditional
-            .replace("x", computeVoteExpr)
-            .replace("`", computeVoteBody)
+        reset = reset
+            .replace("x", resetExpr)
+            .replace("`", resetBody)
             .replace("ind", tab(2));
 
 
@@ -207,22 +299,35 @@ public class ControllerGenerator extends BasicGenerator {
         forestVoteAvailableConditionalBody += tab(4) + "forest_vote <= forest_vote_w;\n";
         forestVoteAvailableConditionalBody += tab(4) + "compute_vote <= 1'b1;\n";
         forestVoteAvailableConditionalBody += tab(4) + "forest_vote_available <= 1'b0;\n";
-        forestVoteAvailableConditionalBody += tab(4) + "start_next <= 1'b1;\n";
 
         forestVoteAvailableConditional = forestVoteAvailableConditional
             .replace("x", forestVoteAvailableConditionalExpr)
             .replace("`", forestVoteAvailableConditionalBody)
             .replace("ind", tab(3));
 
+        String forestVoteRestartProcessConditional = CONDITIONAL_BLOCK;
+        String forestVoteRestartProcessConditionalBody = "";
+        forestVoteRestartProcessConditionalBody += tab(5) + "start_next <= 1'b1;\n";
+        forestVoteRestartProcessConditionalBody += tab(5) + "compute_vote <= 1'b0;\n";
+
+        forestVoteRestartProcessConditional = forestVoteRestartProcessConditional
+            .replace("x", "compute_vote")
+            .replace("`", forestVoteRestartProcessConditionalBody)
+            .replace("ind", tab(4));
+
+
+        String forestVoteRestartProcessConditionalElse = CONDITIONAL_ELSE_BLOCK;
+        String forestVoteRestartProcessConditionalElseBody = "";
+        forestVoteRestartProcessConditionalElseBody += tab(5) + "start_next <= 1'b0;\n";
+
+        forestVoteRestartProcessConditionalElse = forestVoteRestartProcessConditionalElse
+            .replace("y", forestVoteRestartProcessConditionalElseBody)
+            .replace("ind", tab(4));
+
 
         String forestVoteAvailableConditionalElse = CONDITIONAL_ELSE_BLOCK;
-        String forestVoteAvailableConditionalElseBody = "";
-
-        forestVoteAvailableConditionalElseBody += tab(4) + "compute_vote <= 1'b0;\n";
-        forestVoteAvailableConditionalElseBody += tab(4) + "start_next <= 1'b0;\n";
-
         forestVoteAvailableConditionalElse = forestVoteAvailableConditionalElse
-            .replace("y", forestVoteAvailableConditionalElseBody)
+            .replace("y", forestVoteRestartProcessConditional + "\n" + forestVoteRestartProcessConditionalElse)
             .replace("ind", tab(3));
 
 
@@ -239,7 +344,7 @@ public class ControllerGenerator extends BasicGenerator {
             .replace("ind", tab(2));
 
         String always = ALWAYS_BLOCK;
-        String src = computeVoteConditional + "\n" + computeVoteConditionalElse;
+        String src = reset + "\n" + computeVoteConditionalElse;
 
         always = always
             .replace("border", "posedge")

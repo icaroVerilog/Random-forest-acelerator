@@ -65,7 +65,7 @@ public class TreeGenerator extends BaseTreeGenerator {
                 false
             );
         }
-        reportGenerator.createEntry(
+        reportGenerator.generateReport(
             settings.dataset,
             settings.approach,
             settings.trainingParameters.maxDepth,
@@ -79,18 +79,9 @@ public class TreeGenerator extends BaseTreeGenerator {
 
         src += String.format("module tree%d (\n", treeIndex);
 
-        if (this.precision.equals("integer")){
-            for (int index = 0; index < featureQnt; index++){
-                src += String.format("%sfeature%d,\n", tab(1), index);
-            }
-        }
-        else if (this.precision.equals("decimal")){
-            for (int index = 0; index < featureQnt; index++){
-                src += String.format("%sft%d_exponent,\n", tab(1), index);
-            }
-            for (int index = 0; index < featureQnt; index++){
-                src += String.format("%sft%d_fraction,\n", tab(1), index);
-            }
+
+        for (int index = 0; index < featureQnt; index++){
+            src += String.format("%sfeature%d,\n", tab(1), index);
         }
 
         src += tab(1) + "clock,\n";

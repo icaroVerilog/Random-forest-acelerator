@@ -19,7 +19,7 @@ public class TreeGenerator extends BaseTreeGenerator {
 	private int precision;
 	private int maxDepth;
 
-	public void execute(List<Tree> treeList, int classQuantity, int featureQuantity, SettingsCli settings){
+	public void execute(List<Tree> treeList, int classQnt, int featureQnt, SettingsCli settings){
 
 		switch (settings.inferenceParameters.precision){
 			case "double":
@@ -56,9 +56,9 @@ public class TreeGenerator extends BaseTreeGenerator {
 
 			src += generateHeader(index);
 			src += generateIEE754ComparatorFunction(this.precision);
-			src += generateParameters(currentTree.innerNodes, classQuantity);
-			src += generatePortDeclaration(featureQuantity, classQuantity, currentTree.getInnerNodes().size(), currentTree.getMaxDepth());
-			src += generateAlwaysBlock(featureQuantity, currentTree.innerNodes, currentTree.getMaxDepth());
+			src += generateParameters(currentTree.innerNodes, classQnt);
+			src += generatePortDeclaration(featureQnt, classQnt, currentTree.getInnerNodes().size(), currentTree.getMaxDepth());
+			src += generateAlwaysBlock(featureQnt, currentTree.innerNodes, currentTree.getMaxDepth());
 
 			FileBuilder.execute(
 				src, String.format(
@@ -73,14 +73,12 @@ public class TreeGenerator extends BaseTreeGenerator {
 			);
 		}
 
-		reportGenerator.createEntry(
+		reportGenerator.generateReport(
 			settings.dataset,
 			settings.approach,
 			settings.trainingParameters.maxDepth,
 			nodeQntByTree
 		);
-
-		reportGenerator.generateReport();
 	}
 
 	public String generateHeader(int treeIndex){
@@ -98,8 +96,8 @@ public class TreeGenerator extends BaseTreeGenerator {
 		return src;
 	}
 
-	public String generateParameters(HashMap<Integer, InnerNode> innerNodes, int classQuantity){
-		int[][] oneHotMatrix = new int[classQuantity][classQuantity];
+	public String generateParameters(HashMap<Integer, InnerNode> innerNodes, int classQnt){
+		int[][] oneHotMatrix = new int[classQnt][classQnt];
 
 		for (int i = 0; i < oneHotMatrix.length; i++) {
 			for (int j = 0; j < oneHotMatrix[i].length; j++) {
@@ -114,11 +112,11 @@ public class TreeGenerator extends BaseTreeGenerator {
 
 		String src = "";
 
-		for (int index = 0; index < classQuantity; index++) {
-			String oneHotEncode = Arrays.toString(oneHotMatrix[classQuantity - index - 1])
+		for (int index = 0; index < classQnt; index++) {
+			String oneHotEncode = Arrays.toString(oneHotMatrix[classQnt - index - 1])
 					.replaceAll("[\\[\\]\\s]", "")
 					.replace(",", "") + ";";
-			src += tab(1) + String.format("parameter class%d = %d'b%s\n", index, classQuantity,  oneHotEncode);
+			src += tab(1) + String.format("parameter class%d = %d'b%s\n", index, classQnt,  oneHotEncode);
 		}
 		src += "\n";
 
@@ -141,19 +139,19 @@ public class TreeGenerator extends BaseTreeGenerator {
 		return src;
 	}
 
-	public String generatePortDeclaration(int featureQuantity, int classQuantity, int innerNodeQnt, int maxDepth){
+	public String generatePortDeclaration(int featureQnt, int classQnt, int innerNodeQnt, int maxDepth){
 		String tab = tab(1);
 		String src = "";
 
 		src += tab + "input wire clock;\n";
 		src += tab + "input wire reset;\n\n";
-		src += tab(1) + generatePort("features", WIRE, INPUT, this.precision * featureQuantity, true);
+		src += tab(1) + generatePort("features", WIRE, INPUT, this.precision * featureQnt, true);
 		src += "\n";
-		src += tab(1) + generatePort("voted_class", REGISTER, OUTPUT, classQuantity, true);
+		src += tab(1) + generatePort("voted_class", REGISTER, OUTPUT, classQnt, true);
 		src += tab(1) + generatePort("compute_vote", REGISTER, OUTPUT, 1, true);
 		src += "\n";
 
-		for (int index = 0; index < featureQuantity; index++){
+		for (int index = 0; index < featureQnt; index++){
 			src += tab(1) + generatePort(String.format("feature%d", index), REGISTER, NONE, this.precision, true);
 		}
 
@@ -162,12 +160,12 @@ public class TreeGenerator extends BaseTreeGenerator {
 		src += "\n";
 
 		for (int index = 0; index < innerNodeQnt; index++) {
-			src += tab(1) + generatePort(String.format("node%d", index), REGISTER, NONE, classQuantity, true);
+			src += tab(1) + generatePort(String.format("node%d", index), REGISTER, NONE, classQnt, true);
 		}
 
 		if (this.maxDepth > maxDepth){
 			for (int index = 0; index < this.maxDepth - maxDepth; index++) {
-				src += tab(1) + generatePort(String.format("delay_node%d", index), REGISTER, NONE, classQuantity, true);
+				src += tab(1) + generatePort(String.format("delay_node%d", index), REGISTER, NONE, classQnt, true);
 			}
 		}
 
@@ -184,12 +182,12 @@ public class TreeGenerator extends BaseTreeGenerator {
 		return src;
 	}
 
-	public String generateAlwaysBlock(int featureQuantity, HashMap<Integer, InnerNode> innerNodes, int maxDepth){
+	public String generateAlwaysBlock(int featureQnt, HashMap<Integer, InnerNode> innerNodes, int maxDepth){
 		String src = "";
 
-		for (int index = 0; index < featureQuantity; index++) {
-			int upperBit = ((featureQuantity * this.precision) - 1) - (index * this.precision);
-			int lowerBit = ((featureQuantity * this.precision)) - ((index + 1) * this.precision);
+		for (int index = 0; index < featureQnt; index++) {
+			int upperBit = ((featureQnt * this.precision) - 1) - (index * this.precision);
+			int lowerBit = ((featureQnt * this.precision)) - ((index + 1) * this.precision);
 			src += tab(2) + String.format("feature%d <= features[%d:%d];\n", index, upperBit, lowerBit);
 		}
 		src += tab(2) + "sync_flag[0] <= ~reset;\n";

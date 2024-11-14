@@ -17,7 +17,7 @@ public class TreeGenerator extends BaseTreeGenerator {
 
     private Integer precision;
 
-    public void execute(List<Tree> trees, int classQuantity, int featureQuantity, SettingsCli settings){
+    public void execute(List<Tree> trees, int classQnt, int featureQnt, SettingsCli settings){
         switch (settings.inferenceParameters.precision){
             case "double":
                 this.precision = DOUBLE_PRECISION;
@@ -43,9 +43,9 @@ public class TreeGenerator extends BaseTreeGenerator {
 
             String src = "";
 
-            src += generateHeader(String.format("tree%d", index), featureQuantity);
-            src += generatePortDeclaration(featureQuantity, classQuantity, this.precision);
-            src += generateParameters(classQuantity);
+            src += generateHeader(String.format("tree%d", index), featureQnt);
+            src += generatePortDeclaration(featureQnt, classQnt, this.precision);
+            src += generateParameters(classQnt);
             src += "\n\tassign voted_class = \n";
             src += generateMux(trees.get(index).getRoot(), 2);
             src += ";\n";
@@ -63,16 +63,16 @@ public class TreeGenerator extends BaseTreeGenerator {
                 false
             );
         }
-        reportGenerator.createEntry(
-                settings.dataset,
-                settings.approach,
-				settings.trainingParameters.maxDepth,
-                nodeQntByTree
+        reportGenerator.generateReport(
+            settings.dataset,
+            settings.approach,
+            settings.trainingParameters.maxDepth,
+            nodeQntByTree
         );
     }
 
-    private String generateParameters(int classQuantity){
-        int[][] oneHotMatrix = new int[classQuantity][classQuantity];
+    private String generateParameters(int classQnt){
+        int[][] oneHotMatrix = new int[classQnt][classQnt];
 
         for (int i = 0; i < oneHotMatrix.length; i++) {
             for (int j = 0; j < oneHotMatrix[i].length; j++) {
@@ -87,11 +87,11 @@ public class TreeGenerator extends BaseTreeGenerator {
 
         String src = "";
 
-        for (int index = 0; index < classQuantity; index++) {
-            String oneHotEncode = Arrays.toString(oneHotMatrix[classQuantity - index - 1])
+        for (int index = 0; index < classQnt; index++) {
+            String oneHotEncode = Arrays.toString(oneHotMatrix[classQnt - index - 1])
                     .replaceAll("[\\[\\]\\s]", "")
                     .replace(",", "") + ";";
-            src += tab(1) + String.format("parameter class%d = %d'b%s\n", index, classQuantity,  oneHotEncode);
+            src += tab(1) + String.format("parameter class%d = %d'b%s\n", index, classQnt,  oneHotEncode);
         }
         return src;
     }

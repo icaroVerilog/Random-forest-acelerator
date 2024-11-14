@@ -33,7 +33,8 @@ clf = RandomForestClassifier(n_estimators=TREE_QUANTITY, max_depth=MAX_DEPTH)
 clf.fit(X_train, Y_train)
 Y_pred = clf.predict(X_test)
 
-print("accuracy:", metrics.accuracy_score(Y_test, Y_pred), "\n")
+accuracy = metrics.accuracy_score(Y_test, Y_pred)
+print("accuracy:", accuracy, "\n")
 
 directory = DATASET_NAME
 tree_path = DATASET_PATH + "/trees/" + DATASET_NAME

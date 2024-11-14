@@ -12,7 +12,7 @@ public class ControllerGenerator extends BasicGenerator {
     private int comparedColumnBitwidth;
     private int tableIndexerBitwidth;
 
-    public void execute(int classBitwidth, int featureQuantity, SettingsCli settings){
+    public void execute(int classQnt, int featureQnt, SettingsCli settings){
         System.out.println("generating controller");
 
         switch (settings.inferenceParameters.precision){
@@ -36,9 +36,9 @@ public class ControllerGenerator extends BasicGenerator {
         String src = "";
 
         src += generateHeader();
-        src += generateIO(featureQuantity, classBitwidth);
+        src += generateIO(classQnt, featureQnt);
         src += generateValidationTableInstantiation();
-        src += generateAlwaysBlock(classBitwidth);
+        src += generateAlwaysBlock(classQnt);
 
         FileBuilder.execute(
             src, String.format(
@@ -67,8 +67,9 @@ public class ControllerGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateIO(int featureQuantity, int classBitwidth){
-        int featuresBusBitwidth = this.precision * featureQuantity;
+    private String generateIO(int classQnt, int featureQnt){
+        int classBitwidth = (int) Math.ceil(Math.log(classQnt) / Math.log(2));
+        int featuresBusBitwidth = this.precision * featureQnt;
 
         String src = "";
 
@@ -100,7 +101,8 @@ public class ControllerGenerator extends BasicGenerator {
         return src;
     }
 
-    private String generateAlwaysBlock(int classBitwidth){
+    private String generateAlwaysBlock(int classQnt){
+        int classBitwidth = (int) Math.ceil(Math.log(classQnt) / Math.log(2));
         String computeVoteConditional = CONDITIONAL_BLOCK;
         String computeVoteExpr = "";
         String computeVoteBody = "";

@@ -20,16 +20,13 @@ public class ParallelTableFPGAGenerator {
 			)
 		);
 
-		/* calculate the needed bitwidth to represent each class */
-		int classBitwidth = (int) Math.ceil(Math.log(classQuantity) / Math.log(2));
-
 		var treeGenerator 	    = new TreeGenerator();
 		var controllerGenerator = new ControllerGenerator();
 		var adderGenerator      = new AdderGenerator();
 		var majorityGenerator   = new MajorityGenerator();
 
 		treeGenerator	   .execute(classQuantity, featureQuantity, treeList, settings);
-		controllerGenerator.execute(classBitwidth, featureQuantity, treeList.size(), settings);
+		controllerGenerator.execute(featureQuantity, treeList.size(), classQuantity, settings);
 		adderGenerator     .execute(treeList.size(), settings);
 		majorityGenerator  .execute(treeList.size(), classQuantity, settings);
 	}

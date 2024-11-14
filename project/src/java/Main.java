@@ -1,7 +1,6 @@
 package project.src.java;
 
 import project.src.java.core.randomForest.approaches.fpga.FPGA;
-import project.src.java.core.randomForest.dataset.Binarize;
 import project.src.java.core.randomForest.parsers.dotTreeParser.Parser;
 import project.src.java.core.randomForest.parsers.dotTreeParser.treeStructure.Tree;
 import project.src.java.userInterface.Parameter;

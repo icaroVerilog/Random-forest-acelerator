@@ -23,6 +23,8 @@ public class TableEntryGenerator extends BasicGenerator {
     private final ArrayList<BinaryTableEntry> binaryTableEntries = new ArrayList<>();
 
     public ArrayList<BinaryTableEntry> execute(List<Tree> treeList, int precision, boolean oneHot){
+        this.rawTableEntries.clear();
+        this.binaryTableEntries.clear();
         Node root;
         int offset = 0;
 

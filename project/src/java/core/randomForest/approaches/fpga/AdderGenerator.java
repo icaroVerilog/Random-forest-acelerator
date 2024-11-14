@@ -8,14 +8,12 @@ import java.util.List;
 
 public class AdderGenerator extends BasicGenerator {
 
-    private final String MODULE_NAME = "adder";
-
     public void execute(int treeQnt, SettingsCli settings){
         System.out.println("generating adder");
 
         String src = "";
 
-        src += generateHeader(this.MODULE_NAME, treeQnt);
+        src += generateHeader(treeQnt);
         src += generateIO(treeQnt);
         src += generateAssign(treeQnt);
         src += "endmodule";
@@ -32,31 +30,17 @@ public class AdderGenerator extends BasicGenerator {
         );
     }
 
-    private String generateHeader(String module_name, int treeQnt){
+    private String generateHeader(int treeQnt){
 
         String src = "";
 
-        String[] basicIOPorts = {"sum"};
-
-        ArrayList<String> ioPorts = new ArrayList<>(List.of(basicIOPorts));
-
+        src += "module adder (\n";
         for (int index = 0; index < treeQnt; index++) {
-            ioPorts.add(String.format("vote%d", index));
+            src += String.format("vote%d,\n", index);
         }
+        src += tab(1) + "sum\n";
+        src += ");\n";
 
-        src += String.format("module %s (\n", module_name);
-
-        for (int index = 0; index <= ioPorts.size(); index++){
-            if (index == ioPorts.size()){
-                src += ");\n\n";
-            }
-            else if (index == ioPorts.size() - 1){
-                src += tab(1) + ioPorts.get(index) + "\n";
-            }
-            else {
-                src += tab(1) + ioPorts.get(index) + ",\n";
-            }
-        }
         return src;
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
 
 public class TableFPGAGenerator {
 
-    public void execute(List<Tree> treeList, int classQuantity, int featureQuantity, SettingsCli settings){
+    public void execute(List<Tree> treeList, int classQnt, int featureQnt, SettingsCli settings){
 
         FileBuilder.createDir(
             String.format(
@@ -22,13 +22,10 @@ public class TableFPGAGenerator {
             )
         );
 
-        /* calculate the needed bitwidth to represent each class */
-        int classBitwidth = (int) Math.ceil(Math.log(classQuantity) / Math.log(2));
-
         var validationTableGenerator = new ValidationTableGenerator();
         var controllerGenerator      = new ControllerGenerator();
 
-        validationTableGenerator.execute(classQuantity, featureQuantity, classBitwidth, treeList, settings);
-        controllerGenerator     .execute(classBitwidth, featureQuantity, settings);
+        validationTableGenerator.execute(classQnt, featureQnt, treeList, settings);
+        controllerGenerator     .execute(classQnt, featureQnt, settings);
     }
 }
