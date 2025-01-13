@@ -28,7 +28,7 @@ public class Messages {
 			%s   [options]   generate the inference design in verilog using validation tables (work in progress)
 				-tbw					defines the threshold bitwidth i.e the bitwidth of the values who are compared
 				-ibw					defines the node index bitwidth
-				-cbw					defines the bitwidth of the column who represent one dataset column
+				-cbw					defines the bitwidth of the column who represent one dataset column.
 				
 	""",
 			ValidParameters.READ_DATASET,
